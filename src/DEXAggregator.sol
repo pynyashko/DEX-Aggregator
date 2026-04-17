@@ -44,6 +44,28 @@ contract DexAggregator is
         paused = _p;
     }
 
+    function getBestQuote(
+    address tokenIn,
+    address tokenOut,
+    uint amountIn
+)
+    external
+    returns (uint bestOut, bool useV3, uint24 fee)
+{
+    uint v2Out = v2.quote(tokenIn, tokenOut, amountIn);
+    (uint v3Out, uint24 bestFee) = v3.quoteBest(tokenIn, tokenOut, amountIn);
+
+    if (v2Out == 0 && v3Out == 0) {
+        revert Errors.NoRouteFound();
+    }
+
+    if (v3Out > v2Out) {
+        return (v3Out, true, bestFee);
+    } else {
+        return (v2Out, false, 0);
+    }
+}
+
     function swap(
         address tokenIn,
         address tokenOut,
