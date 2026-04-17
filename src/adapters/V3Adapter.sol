@@ -14,48 +14,33 @@ contract V3Adapter {
         quoter = IUniswapV3Quoter(_quoter);
     }
 
-    function quoteBest(
-        address tokenIn,
-        address tokenOut,
-        uint amountIn
-    ) external returns (uint bestOut, uint24 bestFee) {
-
-        for (uint i = 0; i < feeTiers.length; i++) {
-            try quoter.quoteExactInputSingle(
-                tokenIn,
-                tokenOut,
-                feeTiers[i],
-                amountIn,
-                0
-            ) returns (uint out) {
-
+    function quoteBest(address tokenIn, address tokenOut, uint256 amountIn)
+        external
+        returns (uint256 bestOut, uint24 bestFee)
+    {
+        for (uint256 i = 0; i < feeTiers.length; i++) {
+            try quoter.quoteExactInputSingle(tokenIn, tokenOut, feeTiers[i], amountIn, 0) returns (uint256 out) {
                 if (out > bestOut) {
                     bestOut = out;
                     bestFee = feeTiers[i];
                 }
-
             } catch {}
         }
     }
 
-    function swap(
-        address tokenIn,
-        address tokenOut,
-        uint amountIn,
-        uint minOut,
-        uint24 fee
-    ) external returns (uint amountOut) {
-
-        IUniswapV3Router.ExactInputSingleParams memory params =
-            IUniswapV3Router.ExactInputSingleParams({
-                tokenIn: tokenIn,
-                tokenOut: tokenOut,
-                fee: fee,
-                recipient: address(this),
-                amountIn: amountIn,
-                amountOutMinimum: minOut,
-                sqrtPriceLimitX96: 0
-            });
+    function swap(address tokenIn, address tokenOut, uint256 amountIn, uint256 minOut, uint24 fee)
+        external
+        returns (uint256 amountOut)
+    {
+        IUniswapV3Router.ExactInputSingleParams memory params = IUniswapV3Router.ExactInputSingleParams({
+            tokenIn: tokenIn,
+            tokenOut: tokenOut,
+            fee: fee,
+            recipient: address(this),
+            amountIn: amountIn,
+            amountOutMinimum: minOut,
+            sqrtPriceLimitX96: 0
+        });
 
         return router.exactInputSingle(params);
     }

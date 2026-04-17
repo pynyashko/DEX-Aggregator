@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -12,11 +11,7 @@ import "./adapters/V2Adapter.sol";
 import "./adapters/V3Adapter.sol";
 import "./utils/Errors.sol";
 
-contract DexAggregator is
-    UUPSUpgradeable,
-    OwnableUpgradeable,
-    ReentrancyGuard
-{
+contract DexAggregator is UUPSUpgradeable, OwnableUpgradeable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     V2Adapter public v2;
@@ -24,7 +19,7 @@ contract DexAggregator is
 
     bool public paused;
 
-    event Swap(address user, address tokenIn, address tokenOut, uint amountIn, uint amountOut);
+    event Swap(address user, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut);
 
     modifier notPaused() {
         if (paused) revert Errors.Paused();
@@ -44,47 +39,43 @@ contract DexAggregator is
         paused = _p;
     }
 
-    function getBestQuote(
-    address tokenIn,
-    address tokenOut,
-    uint amountIn
-    ) external
-    returns (uint bestOut, bool useV3, uint24 fee)
+    function getBestQuote(address tokenIn, address tokenOut, uint256 amountIn)
+        external
+        returns (uint256 bestOut, bool useV3, uint24 fee)
     {
         bestOut = 0;
         useV3 = false;
         fee = 0;
 
-    uint v2Out = 0;
+        uint256 v2Out = 0;
 
-    if (address(v2) != address(0)) {
-        v2Out = v2.quote(tokenIn, tokenOut, amountIn);
+        if (address(v2) != address(0)) {
+            v2Out = v2.quote(tokenIn, tokenOut, amountIn);
+        }
+        uint256 v3Out = 0;
+        uint24 bestFee = 0;
+
+        if (address(v3) != address(0)) {
+            (v3Out, bestFee) = v3.quoteBest(tokenIn, tokenOut, amountIn);
+        }
+
+        if (v2Out == 0 && v3Out == 0) {
+            return (0, false, 0);
+        }
+
+        if (v3Out > v2Out) {
+            return (v3Out, true, bestFee);
+        } else {
+            return (v2Out, false, 0);
+        }
     }
-    uint v3Out = 0;
-    uint24 bestFee = 0;
 
-    if (address(v3) != address(0)) {
-        (v3Out, bestFee) = v3.quoteBest(tokenIn, tokenOut, amountIn);
-    }
-
-    if (v2Out == 0 && v3Out == 0) {
-        return (0, false, 0);
-    }
-
-    if (v3Out > v2Out) {
-        return (v3Out, true, bestFee);
-    } else {
-        return (v2Out, false, 0);
-    }
-    }
-
-    function swap(
-        address tokenIn,
-        address tokenOut,
-        uint amountIn,
-        uint minOut
-    ) external nonReentrant notPaused returns (uint amountOut) {
-
+    function swap(address tokenIn, address tokenOut, uint256 amountIn, uint256 minOut)
+        external
+        nonReentrant
+        notPaused
+        returns (uint256 amountOut)
+    {
         if (amountIn == 0) revert Errors.ZeroAmount();
         if (tokenIn == tokenOut) revert Errors.InvalidToken();
 
@@ -100,14 +91,14 @@ contract DexAggregator is
         }
 
         // Quotes
-        uint v2Out = 0;
-        uint v3Out = 0;
+        uint256 v2Out = 0;
+        uint256 v3Out = 0;
         uint24 fee = 0;
 
-        if(address(v2) != address(0)) {
+        if (address(v2) != address(0)) {
             v2Out = v2.quote(tokenIn, tokenOut, amountIn);
         }
-        
+
         if (address(v3) != address(0)) {
             (v3Out, fee) = v3.quoteBest(tokenIn, tokenOut, amountIn);
         }

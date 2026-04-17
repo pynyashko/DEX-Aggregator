@@ -25,16 +25,10 @@ contract Deploy is Script {
         DexAggregator impl = new DexAggregator();
 
         // 3. Encode initializer
-        bytes memory data = abi.encodeCall(
-            DexAggregator.initialize,
-            (address(v2), address(v3))
-        );
+        bytes memory data = abi.encodeCall(DexAggregator.initialize, (address(v2), address(v3)));
 
         // 4. Deploy proxy
-        ERC1967Proxy proxy = new ERC1967Proxy(
-            address(impl),
-            data
-        );
+        ERC1967Proxy proxy = new ERC1967Proxy(address(impl), data);
 
         console.log("=== DEPLOYED ===");
         console.log("V2 Adapter:", address(v2));

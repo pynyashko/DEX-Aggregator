@@ -9,7 +9,7 @@ import "../src/adapters/V3Adapter.sol";
 
 interface IWETH {
     function deposit() external payable;
-    function approve(address spender, uint amount) external returns (bool);
+    function approve(address spender, uint256 amount) external returns (bool);
 }
 
 contract AggregatorTest is Test {
@@ -30,7 +30,6 @@ contract AggregatorTest is Test {
     function setUp() public {
         vm.createSelectFork(vm.envString("SEPOLIA_RPC_URL"));
 
-        
         v3 = new V3Adapter(V3_ROUTER, V3_QUOTER);
 
         agg = new DexAggregator();
@@ -40,7 +39,7 @@ contract AggregatorTest is Test {
 
         vm.deal(USER, 10 ether);
 
-        vm.startPrank(USER);  
+        vm.startPrank(USER);
         IWETH(WETH).deposit{value: 1 ether}();
         IERC20(WETH).approve(address(agg), type(uint256).max);
 
@@ -52,7 +51,7 @@ contract AggregatorTest is Test {
     // =========================
 
     function test_GetBestQuote() public {
-        (uint out,,) = agg.getBestQuote(WETH, USDC, 1 ether);
+        (uint256 out,,) = agg.getBestQuote(WETH, USDC, 1 ether);
         assertTrue(out >= 0);
     }
 
@@ -63,7 +62,7 @@ contract AggregatorTest is Test {
     function test_Swap_NoRevert() public {
         vm.startPrank(USER);
 
-        try agg.swap(WETH, USDC, 0.1 ether, 0) returns (uint out) {
+        try agg.swap(WETH, USDC, 0.1 ether, 0) returns (uint256 out) {
             // если прошёл — отлично
             assertTrue(out >= 0);
         } catch {
