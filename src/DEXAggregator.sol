@@ -48,15 +48,27 @@ contract DexAggregator is
     address tokenIn,
     address tokenOut,
     uint amountIn
-)
-    external
+    ) external
     returns (uint bestOut, bool useV3, uint24 fee)
-{
-    uint v2Out = v2.quote(tokenIn, tokenOut, amountIn);
-    (uint v3Out, uint24 bestFee) = v3.quoteBest(tokenIn, tokenOut, amountIn);
+    {
+        bestOut = 0;
+        useV3 = false;
+        fee = 0;
+
+    uint v2Out = 0;
+
+    if (address(v2) != address(0)) {
+        v2Out = v2.quote(tokenIn, tokenOut, amountIn);
+    }
+    uint v3Out = 0;
+    uint24 bestFee = 0;
+
+    if (address(v3) != address(0)) {
+        (v3Out, bestFee) = v3.quoteBest(tokenIn, tokenOut, amountIn);
+    }
 
     if (v2Out == 0 && v3Out == 0) {
-        revert Errors.NoRouteFound();
+        return (0, false, 0);
     }
 
     if (v3Out > v2Out) {
@@ -64,7 +76,7 @@ contract DexAggregator is
     } else {
         return (v2Out, false, 0);
     }
-}
+    }
 
     function swap(
         address tokenIn,
@@ -79,18 +91,32 @@ contract DexAggregator is
         IERC20(tokenIn).safeTransferFrom(msg.sender, address(this), amountIn);
 
         // Approvals
-        IERC20(tokenIn).approve(address(v2), amountIn);
-        IERC20(tokenIn).approve(address(v3), amountIn);
+        if (address(v2) != address(0)) {
+            IERC20(tokenIn).forceApprove(address(v2), amountIn);
+        }
+
+        if (address(v3) != address(0)) {
+            IERC20(tokenIn).forceApprove(address(v3), amountIn);
+        }
 
         // Quotes
-        uint v2Out = v2.quote(tokenIn, tokenOut, amountIn);
-        (uint v3Out, uint24 fee) = v3.quoteBest(tokenIn, tokenOut, amountIn);
+        uint v2Out = 0;
+        uint v3Out = 0;
+        uint24 fee = 0;
+
+        if(address(v2) != address(0)) {
+            v2Out = v2.quote(tokenIn, tokenOut, amountIn);
+        }
+        
+        if (address(v3) != address(0)) {
+            (v3Out, fee) = v3.quoteBest(tokenIn, tokenOut, amountIn);
+        }
 
         if (v2Out == 0 && v3Out == 0) revert Errors.NoRouteFound();
 
         bool useV3 = v3Out > v2Out;
 
-        if (useV3) {
+        if (useV3 || address(v2) == address(0)) {
             amountOut = v3.swap(tokenIn, tokenOut, amountIn, minOut, fee);
         } else {
             amountOut = v2.swap(tokenIn, tokenOut, amountIn, minOut);
