@@ -93,8 +93,6 @@ Output: $$ amountOut = \frac{amountIn\cdot 997 \cdot reserveOut}{reserveIn \cdot
 
 Price: $$ P = (\frac{\sqrt{PriceX96}}{2^{96}})^2 $$
 
-P = (√(PriceX96 / 2^96))^2
-
 ## 6. Swap Execution Flow
 
 Step-by-step:
