@@ -32,9 +32,8 @@ contract V2Adapter {
         path[0] = tokenIn;
         path[1] = tokenOut;
 
-        uint256[] memory amounts = router.swapExactTokensForTokens(
-            amountIn, minOut, path, address(this), block.timestamp
-        );
+        uint256[] memory amounts =
+            router.swapExactTokensForTokens(amountIn, minOut, path, address(this), block.timestamp);
 
         return amounts[1];
     }
