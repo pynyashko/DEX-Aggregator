@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Script.sol";
 
-import "../src/DexAggregator.sol";
+import "../src/DEXAggregator.sol";
 import "../src/adapters/V2Adapter.sol";
 import "../src/adapters/V3Adapter.sol";
 
