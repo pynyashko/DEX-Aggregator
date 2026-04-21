@@ -13,7 +13,7 @@ import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract Deploy is Script {
     function run() external {
-        uint256 pk = vm.envUint("PRIVATE_KEY");
+        uint256 pk = 0xd5e898e670ef72538931bbf99b7921664ec9cc90ca924bec718995fa22d8a231;
 
         vm.startBroadcast(pk);
 

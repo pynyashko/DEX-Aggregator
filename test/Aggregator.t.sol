@@ -28,7 +28,7 @@ contract AggregatorTest is Test {
     address V3_QUOTER = 0xEd1f6473345F45b75F8179591dd5bA1888cf2FB3;
 
     function setUp() public {
-        vm.createSelectFork(vm.envString("SEPOLIA_RPC_URL"));
+        vm.createSelectFork("https://sepolia.infura.io/v3/3b70625dbb5741e3907fa569d0c1c1e3");
 
         v3 = new V3Adapter(V3_ROUTER, V3_QUOTER);
 
